@@ -67,7 +67,7 @@ model HomeContent {
   updatedAt DateTime @updatedAt @map("updated_at")
   updatedBy String?  @map("updated_by") @db.Uuid
   updater   User?    @relation(fields: [updatedBy], references: [id])
-
+  
   @@map("home_content")
   @@index([section])
 }

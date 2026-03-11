@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { prisma } from '../config/prisma';
+import { buildPaginationMeta, paginationSkipTake, parsePagination } from '../utils/pagination';
 
 export interface AuditInput {
   userId?: string;
@@ -41,4 +42,36 @@ export const createAuditLogFromRequest = async (
     ipAddress,
     userAgent: req.headers['user-agent'],
   });
+};
+
+export const listAuditLogs = async (query: Record<string, unknown>) => {
+  const params = parsePagination(query);
+  const where: Record<string, unknown> = {};
+
+  if (query.userId) {
+    where.userId = String(query.userId);
+  }
+
+  if (query.action) {
+    where.action = String(query.action);
+  }
+
+  if (query.resourceType) {
+    where.resourceType = String(query.resourceType);
+  }
+
+  const [total, logs] = await prisma.$transaction([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.findMany({
+      where,
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      ...paginationSkipTake(params),
+    }),
+  ]);
+
+  return {
+    logs,
+    pagination: buildPaginationMeta(params, total),
+  };
 };

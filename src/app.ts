@@ -1,14 +1,32 @@
+import 'dotenv/config';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
+import path from 'path';
 import authRoutes from './routes/auth.routes';
+import auditLogRoutes from './routes/audit-log.routes';
+import categoryRoutes from './routes/category.routes';
+import eventRoutes from './routes/event.routes';
+import homeContentRoutes from './routes/home-content.routes';
+import inquiryRoutes from './routes/inquiry.routes';
+import leadContentRoutes from './routes/lead-content.routes';
+import lecturerRoutes from './routes/lecturer.routes';
+import mediaRoutes from './routes/media.routes';
+import newsRoutes from './routes/news.routes';
+import pageRoutes from './routes/page.routes';
+import programRoutes from './routes/program.routes';
+import roleRoutes from './routes/role.routes';
+import siteSettingsRoutes from './routes/site-settings.routes';
+import tagRoutes from './routes/tag.routes';
+import userRoutes from './routes/user.routes';
 import { HttpError } from './utils/http-error';
-
-dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+if (process.env.NODE_ENV !== 'production') {
+  app.set('json spaces', 2);
+}
 
 // Security Middleware
 app.use(helmet());
@@ -17,21 +35,50 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR || './uploads')));
 
 // Health Check Endpoint
-app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok', message: 'STTB API is running' });
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', message: 'STTB API is running', timestamp: new Date().toISOString() });
+});
+
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'STTB API is running. Use /api/* endpoints.',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      news: '/api/news',
+      programs: '/api/programs',
+    },
+  });
 });
 
 // Auth Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/home-content', homeContentRoutes);
+app.use('/api/programs', programRoutes);
+app.use('/api/lead-content', leadContentRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/site-settings', siteSettingsRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/lecturers', lecturerRoutes);
+app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/pages', pageRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ success: false, error: `Route not found: ${req.method} ${req.originalUrl}` });

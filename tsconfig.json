@@ -16,5 +16,8 @@
   "exclude": [
     "node_modules",
     "**/*.spec.ts"
-  ]
+  ],
+  "ts-node": {
+    "files": true
+  }
 }

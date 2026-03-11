@@ -1,6 +1,6 @@
 # STTB Backend - DB & Framework Status Report
 
-Tanggal cek: 2026-03-11
+Tanggal cek: 2026-03-12
 
 Dokumen ini dibuat dari inspeksi langsung kode backend (`prisma/schema.prisma`, `prisma/migrations`, `package.json`, `src/app.ts`) dan pengecekan `npx prisma migrate status`.
 
@@ -110,22 +110,55 @@ Catatan: field `events.category` yang sudah ada tetap dipertahankan untuk kompat
 
 ## 8) API/Service Readiness (Current Code Snapshot)
 
-- Server Express sudah berjalan dengan middleware dasar dan endpoint health:
+- Server Express sudah berjalan dengan middleware dasar, static upload serving, dan endpoint health:
   - `GET /api/health`
-- Fondasi Phase 2 (Auth + RBAC) sudah terpasang:
+  - `GET /uploads/:filename`
+- Fondasi auth + RBAC sudah aktif:
   - `POST /api/auth/register`
   - `POST /api/auth/login`
   - `POST /api/auth/refresh`
+  - `POST /api/auth/logout`
   - `GET /api/auth/me` (protected)
   - `GET /api/auth/admin-only` (protected + role `admin`)
-- Komponen auth aktif di codebase:
-  - `auth.service` (register/login/refresh/profile)
-  - middleware `requireAuth`
-  - middleware `authorizeRoles`
+- Phase 3 CMS API sudah aktif di codebase:
+  - `GET/POST/PUT/DELETE /api/categories`
+  - `GET/POST/PUT/DELETE /api/tags`
+  - `GET/POST/PUT/DELETE /api/news`
+  - `GET/PUT /api/home-content/:section`
+  - `GET /api/programs`
+  - `GET/PUT /api/programs/:slug`
+  - `PUT /api/programs/:slug/academic-info`
+  - `PUT /api/programs/:slug/curriculum`
+  - `PUT /api/programs/:slug/graduate-profile`
+  - `PUT /api/programs/:slug/career-opportunities`
+  - `POST/DELETE /api/programs/:slug/courses`
+  - `GET/PUT /api/lead-content/:section`
+  - `GET/POST/PUT/DELETE /api/lead-content/programs`
+  - `GET/POST/PUT/DELETE /api/events`
+  - `GET /api/site-settings`
+  - `GET/PUT /api/site-settings/:category`
+  - `GET/POST/PUT/DELETE /api/media` (`POST` via `/api/media/upload`)
+  - `GET/POST/PUT/DELETE /api/users` (admin)
+  - `GET/POST/PUT /api/roles` (admin)
+  - `GET /api/audit-logs` (admin)
+  - `GET/POST/PUT/DELETE /api/lecturers`
+  - `POST /api/inquiries` (public)
+  - `GET /api/inquiries` (admin)
+  - `PUT /api/inquiries/:id/read` (admin)
+  - `DELETE /api/inquiries/:id` (admin)
+  - `GET/POST/PUT/DELETE /api/pages`
+- Komponen reusable aktif di codebase:
+  - `validateRequest` untuk express-validator
+  - `sendSuccess/sendCreated/sendDeleted/sendPaginated`
+  - `parsePagination/buildPaginationMeta`
+  - `generateSlug/ensureUniqueSlug`
+  - `createAuditLogFromRequest`
+  - `uploadImage/uploadFile`
 
 ## 9) Kesimpulan untuk Tim Frontend
 
-- Struktur database CMS sudah lengkap untuk modul: Users/Roles, Home, Programs, News, Categories/Tags, Events, Media, Settings, Audit.
-- Skema database berada pada kondisi sinkron dengan migrasi awal.
-- Frontend bisa mulai integrasi berbasis kontrak data tabel yang sudah stabil, dengan perhatian khusus pada field `JSONB` agar parser/typing dibuat fleksibel.
-- Untuk authentication, FE sudah bisa mulai integrasi endpoint auth dasar di `/api/auth/*`.
+- Struktur database CMS sudah lengkap untuk modul: Users/Roles, Home, Programs, News, Categories/Tags, Events, Media, Settings, Audit, Pages, Lecturers, Inquiries.
+- Skema database sinkron dengan Prisma schema dan Prisma Client sudah digenerate ulang setelah penambahan model FE compatibility.
+- Backend sekarang sudah berada di tahap siap integrasi untuk frontend terpisah (Next.js + Tailwind), karena kontrak endpoint inti CMS sudah tersedia.
+- Frontend tetap perlu menyesuaikan typing untuk field `JSONB` (`home_content.data`, `lead_content.data`, `programs.*`, `site_settings.data`) agar parser fleksibel.
+- Media storage saat ini menggunakan local disk via Multer; jika production butuh CDN/S3/Cloudinary maka layer storage masih bisa di-upgrade tanpa mengubah kontrak API utama.
