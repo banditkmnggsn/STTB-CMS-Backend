@@ -1,0 +1,7 @@
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "sttb_db", schema "public" at "localhost:5432"
+
+Already in sync, no schema change or pending migration was found.
+
