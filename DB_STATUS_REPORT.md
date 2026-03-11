@@ -112,10 +112,20 @@ Catatan: field `events.category` yang sudah ada tetap dipertahankan untuk kompat
 
 - Server Express sudah berjalan dengan middleware dasar dan endpoint health:
   - `GET /api/health`
-- Folder `controllers`, `routes`, `services`, `middleware` sudah ada, namun implementasi endpoint domain belum terlihat pada snapshot saat ini.
+- Fondasi Phase 2 (Auth + RBAC) sudah terpasang:
+  - `POST /api/auth/register`
+  - `POST /api/auth/login`
+  - `POST /api/auth/refresh`
+  - `GET /api/auth/me` (protected)
+  - `GET /api/auth/admin-only` (protected + role `admin`)
+- Komponen auth aktif di codebase:
+  - `auth.service` (register/login/refresh/profile)
+  - middleware `requireAuth`
+  - middleware `authorizeRoles`
 
 ## 9) Kesimpulan untuk Tim Frontend
 
 - Struktur database CMS sudah lengkap untuk modul: Users/Roles, Home, Programs, News, Categories/Tags, Events, Media, Settings, Audit.
 - Skema database berada pada kondisi sinkron dengan migrasi awal.
 - Frontend bisa mulai integrasi berbasis kontrak data tabel yang sudah stabil, dengan perhatian khusus pada field `JSONB` agar parser/typing dibuat fleksibel.
+- Untuk authentication, FE sudah bisa mulai integrasi endpoint auth dasar di `/api/auth/*`.
