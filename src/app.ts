@@ -24,6 +24,18 @@ import { HttpError } from './utils/http-error';
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
+const envOrigins = [process.env.FRONTEND_URLS, process.env.FRONTEND_URL]
+  .filter(Boolean)
+  .flatMap((value) => String(value).split(','))
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([
+  'http://localhost:5173',
+  'http://localhost:3002',
+  ...envOrigins,
+]));
+
 if (process.env.NODE_ENV !== 'production') {
   app.set('json spaces', 2);
 }
@@ -33,7 +45,20 @@ app.use(helmet());
 
 // CORS Configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow server-side tools and same-origin requests without Origin header.
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(null, false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
